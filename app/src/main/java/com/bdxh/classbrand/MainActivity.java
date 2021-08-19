@@ -43,6 +43,7 @@ import com.bdxh.classbrand.dialog.CommonDialog;
 import com.bdxh.classbrand.provider.ImageProvider;
 import com.bdxh.classbrand.utils.AppRunningUtil;
 import com.bdxh.classbrand.utils.LoadUrlUtils;
+import com.bdxh.classbrand.utils.TimerSetting;
 import com.bdxh.classbrand.utils.Utils;
 import com.bdxh.classbrand.web.PreloadWebView;
 import com.blankj.utilcode.util.ConvertUtils;
@@ -361,6 +362,7 @@ public class MainActivity extends BaseActivity implements IGetMessageCallBack {
                 //Power ; timeOn ; 2021-04-28 14:30 ;timeOff ; 2021-04-28 11:30
                 int[] timeOn = timeOnOff(message.getTimeOn());
                 int[] timeOff = timeOnOff(message.getTimeOff());
+
                 LogUtils.d("<<---开机--->>" + Arrays.toString(timeOn) + "<<---关机--->>" + Arrays.toString(timeOff));
                 PowerOnOffManager.getInstance(MainActivity.this).clearPowerOnOffTime();
                 PowerOnOffManager.getInstance(MainActivity.this).setPowerOnOff(timeOn, timeOff);
@@ -452,6 +454,7 @@ public class MainActivity extends BaseActivity implements IGetMessageCallBack {
         int[] timeoff = {instance.get(Calendar.YEAR), instance.get(Calendar.MONTH) + 1, instance.get(Calendar.DATE), 18, 59};
         instance.add(Calendar.DATE, 1);
         int[] timeon = {instance.get(Calendar.YEAR), instance.get(Calendar.MONTH) + 1, instance.get(Calendar.DATE), 7, 59};
+//        TimerSetting.atTheCurrentTime(timeoff.,minute)
         LogUtils.d("开机--->>" + Arrays.toString(timeon) + "<<---关机--->>" + Arrays.toString(timeoff));
         PowerOnOffManager.getInstance(MainActivity.this).clearPowerOnOffTime();
         PowerOnOffManager.getInstance(MainActivity.this).setPowerOnOff(timeon, timeoff);

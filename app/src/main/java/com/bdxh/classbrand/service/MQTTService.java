@@ -240,7 +240,6 @@ public class MQTTService extends Service {
                 // 订阅myTopic话题
                 LogUtils.i("SUB:" + myTopic);
                 mqttAndroidClient.subscribe(myTopic, 0);
-//                LooperMsg();
             } catch (MqttException e) {
                 e.printStackTrace();
                 LogUtils.e("sube：" + e.getMessage());
@@ -262,7 +261,6 @@ public class MQTTService extends Service {
                 // 订阅myTopic话题
                 LogUtils.i("SUB:" + myTopic);
                 mqttAndroidClient.subscribe(myTopic, 0);
-//                LooperMsg();
             } catch (MqttException e) {
                 e.printStackTrace();
                 LogUtils.e("sube：" + e.getMessage());
