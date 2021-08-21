@@ -546,7 +546,6 @@ public class MainActivity extends BaseActivity implements IGetMessageCallBack {
         int[] timeOn = timeOnOff(TimeOn , "on");
         int[] timeOff = timeOnOff(TimeOff,"off");
 
-//        boolean theCurrentTime = TimerSetting.atTheCurrentTime(beginHour, beginMin, endHour, endMin);
         LogUtils.d(" 比较时间间隔 " + isRange);
         PowerOnOffManager.getInstance(MainActivity.this).clearPowerOnOffTime();
         if (isRange){

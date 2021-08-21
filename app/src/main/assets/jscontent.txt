@@ -1,4 +1,4 @@
 javascript:(function(){
 
-    window.location.href = 'http://device.bdxhtx.com:90/h5/index';
+    window.location.href = 'http://myxx.bdxhtx.com:90/h5/index';
 })();

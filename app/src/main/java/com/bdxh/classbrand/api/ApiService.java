@@ -11,10 +11,13 @@ import retrofit2.http.Url;
 
 public interface ApiService {
 
+    // 正式接口
     String BASE_URL = "http://myxx.bdxhtx.com:9600";
     //测试接口
 //    String BASE_URL = "http://81.71.124.21:1883";
 //    String BASE_URL = "http://81.71.124.21:9600";
+    // webView  正式接口： http://myxx.bdxhtx.com:90/h5/index
+    // http://device.bdxhtx.com:90/h5/index
 
     @Streaming
     @GET
