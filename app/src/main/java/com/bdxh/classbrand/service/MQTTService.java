@@ -167,8 +167,8 @@ public class MQTTService extends Service {
         Boolean retained = false;
         if ((!message.equals("")) || (!topic.equals(""))) {
             // 最后的遗嘱
-            // MQTT本身就是为信号不稳定的网络设计的，所以难免一些客户端会无故的和Broker断开连接。
-            //当客户端连接到Broker时，可以指定LWT，Broker会定期检测客户端是否有异常。
+            // MQTT本身就是为信号不稳定的网络设计的，所以免一些客户端会无故的和Broker断开连接。
+            //当客户端连接到Broker时，可以指定LWT，Bro难ker会定期检测客户端是否有异常。
             //当客户端异常掉线时，Broker就往连接时指定的topic里推送当时指定的LWT消息。
             try {
                 mMqttConnectOptions.setWill(topic, message.getBytes(), qos.intValue(), retained.booleanValue());
@@ -184,7 +184,7 @@ public class MQTTService extends Service {
     }
 
     @Override
-    public void onDestroy() {
+    public void onDestroy(){
         // 此处解决MQTT退出异常问题
         destroy();
         //关闭定时任务
@@ -242,7 +242,7 @@ public class MQTTService extends Service {
                 mqttAndroidClient.subscribe(myTopic, 0);
             } catch (MqttException e) {
                 e.printStackTrace();
-                LogUtils.e("sube：" + e.getMessage());
+                LogUtils.e("SUB:" + e.getMessage());
             }
         }
 
@@ -263,7 +263,7 @@ public class MQTTService extends Service {
                 mqttAndroidClient.subscribe(myTopic, 0);
             } catch (MqttException e) {
                 e.printStackTrace();
-                LogUtils.e("sube：" + e.getMessage());
+                LogUtils.e("SUB:" + e.getMessage());
             }
         }
 

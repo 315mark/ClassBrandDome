@@ -9,7 +9,6 @@ public class LoadUrlUtils {
 
     private LoadUrlUtils(){}
 
-
     public static void loadUrl(final WebView web, final String url) {
         if (web == null || TextUtils.isEmpty(url)) {
             return;
@@ -37,5 +36,4 @@ public class LoadUrlUtils {
             }
         });
     }
-
 }

@@ -10,7 +10,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
-import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,14 +27,7 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.core.content.FileProvider;
-
 import com.bdxh.classbrand.activity.BaseActivity;
-import com.bdxh.classbrand.app.App;
 import com.bdxh.classbrand.bean.ResultAdb;
 import com.bdxh.classbrand.common.Config;
 import com.bdxh.classbrand.common.UniqueIDUtils;
@@ -50,7 +42,8 @@ import com.blankj.utilcode.util.ConvertUtils;
 import com.blankj.utilcode.util.EncodeUtils;
 import com.blankj.utilcode.util.LogUtils;
 import com.blankj.utilcode.util.NetworkUtils;
-import com.blankj.utilcode.util.ToastUtils;
+import com.blankj.utilcode.util.ThreadUtils;
+import com.blankj.utilcode.util.TimeUtils;
 import com.jeremyliao.liveeventbus.LiveEventBus;
 import com.tencent.mmkv.MMKV;
 
@@ -60,9 +53,19 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 import java.util.Objects;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 
 public class MainActivity extends BaseActivity implements IGetMessageCallBack {
 
@@ -75,6 +78,10 @@ public class MainActivity extends BaseActivity implements IGetMessageCallBack {
     private ProgressDialog progressDialog;
     private String mFileName = Environment.getExternalStorageDirectory() + "/" + "class_brand.apk";
     private CommonDialog downApkDialog;
+    int beginHour, beginMin,  endHour, endMin;
+    private Runnable TimerCheck ; //校验
+    boolean isRunning = false;
+    private List<ResultAdb.DataBean> dataList= new ArrayList<>();
 
     @Override
     public int initLayout() {
@@ -127,7 +134,6 @@ public class MainActivity extends BaseActivity implements IGetMessageCallBack {
                 if (progressDialog != null && progressDialog.isShowing()) {
                     progressDialog.dismiss();
                 }
-
                 if (NetworkUtils.isConnected()) {
                     mWebView.setVisibility(View.VISIBLE);
                     if (downApkDialog != null && mWebView.getProgress() == 100) {
@@ -180,7 +186,7 @@ public class MainActivity extends BaseActivity implements IGetMessageCallBack {
         mWebView.addJavascriptInterface(new JSInterface(), "jSInterface");
         loadContent(0);
 
-        listener = new ImageProvider.ImageListener() {
+        listener = new ImageProvider.ImageListener(){
             @Override
             public void onLoaded(String groupid, int index, boolean isSuccess) {
                 StringBuilder stringBuilder = new StringBuilder();
@@ -197,6 +203,36 @@ public class MainActivity extends BaseActivity implements IGetMessageCallBack {
         ImageProvider.registerImageListener(listener);
     }
 
+    private void checkTask(ResultAdb.DataBean dataBean,Date dateon,Date dateoff){
+        TimerCheck = () -> {
+          try {
+                isRunning = true;
+                LogUtils.d("  轮询执行定时操作  ");
+                boolean isRange = TimerSetting.isEffectiveDate(dateon, dateoff);
+                registTimer(dataBean,isRange);
+            } catch (Exception e) {
+                isRunning = false;
+                e.printStackTrace();
+            }
+        };
+        mHandler.post(TimerCheck);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+       /* if (!isRunning) {
+            String power_on = mmkv.decodeString(Config.POWER_ON,"");
+            String power_off = mmkv.decodeString(Config.POWER_OFF,"");
+            if (!power_on.isEmpty() && !power_off.isEmpty()){
+                Date dateon = TimeUtils.string2Date(power_on,new SimpleDateFormat("yyyy-MM-dd HH:mm"));
+                Date dateoff = TimeUtils.string2Date(power_off , new SimpleDateFormat("yyyy-MM-dd HH:mm"));
+                boolean isRange = TimerSetting.isEffectiveDate(dateon, dateoff);
+                registTimer(power_on,power_off ,isRange);
+            }
+            LogUtils.d("运行轮询");
+        }*/
+    }
 
     @Override
     protected void onResume() {
@@ -226,7 +262,6 @@ public class MainActivity extends BaseActivity implements IGetMessageCallBack {
         downApkDialog.getWindow().setAttributes(params);
         downApkDialog.getWindow().setGravity(Gravity.CENTER);
     }
-
 
     private void loadContent(long delay) {
         LogUtils.d("loadContent:" + delay);
@@ -359,16 +394,10 @@ public class MainActivity extends BaseActivity implements IGetMessageCallBack {
                 break;
 
             case "Power":
-                //Power ; timeOn ; 2021-04-28 14:30 ;timeOff ; 2021-04-28 11:30
-                int[] timeOn = timeOnOff(message.getTimeOn());
-                int[] timeOff = timeOnOff(message.getTimeOff());
-
-                LogUtils.d("<<---开机--->>" + Arrays.toString(timeOn) + "<<---关机--->>" + Arrays.toString(timeOff));
-                PowerOnOffManager.getInstance(MainActivity.this).clearPowerOnOffTime();
-                PowerOnOffManager.getInstance(MainActivity.this).setPowerOnOff(timeOn, timeOff);
-                String onTime = PowerOnOffManager.getInstance(MainActivity.this).getPowerOnTime();
-                boolean powerOnTime = PowerOnOffManager.getInstance(MainActivity.this).isSetPowerOnTime();
-                LogUtils.d("  定时开机时间 " + onTime + "  是否设置开关机: " + powerOnTime);
+                dataList.add(message);
+                Date dateon = TimeUtils.string2Date(message.getTimeOn(), new SimpleDateFormat("yyyy-MM-dd HH:mm"));
+                Date dateoff = TimeUtils.string2Date(message.getTimeOff(), new SimpleDateFormat("yyyy-MM-dd HH:mm"));
+                checkTask(message ,dateon, dateoff);
                 break;
             default:
                 break;
@@ -454,7 +483,6 @@ public class MainActivity extends BaseActivity implements IGetMessageCallBack {
         int[] timeoff = {instance.get(Calendar.YEAR), instance.get(Calendar.MONTH) + 1, instance.get(Calendar.DATE), 18, 59};
         instance.add(Calendar.DATE, 1);
         int[] timeon = {instance.get(Calendar.YEAR), instance.get(Calendar.MONTH) + 1, instance.get(Calendar.DATE), 7, 59};
-//        TimerSetting.atTheCurrentTime(timeoff.,minute)
         LogUtils.d("开机--->>" + Arrays.toString(timeon) + "<<---关机--->>" + Arrays.toString(timeoff));
         PowerOnOffManager.getInstance(MainActivity.this).clearPowerOnOffTime();
         PowerOnOffManager.getInstance(MainActivity.this).setPowerOnOff(timeon, timeoff);
@@ -464,7 +492,7 @@ public class MainActivity extends BaseActivity implements IGetMessageCallBack {
         LogUtils.d("  定时关机时间 " + offTime + "  定时开机时间 " + onTime + "  是否设置开关机: " + powerOnTime);
     }
 
-    private int[] timeOnOff(String data) {
+    private int[] timeOnOff(String data,String type) {
         String onData = data.replaceAll("-", "").replaceAll(":", "").replaceAll(" ", "").trim();
         //年
         int year = Integer.parseInt(onData.substring(0, 4));
@@ -476,6 +504,63 @@ public class MainActivity extends BaseActivity implements IGetMessageCallBack {
         int hour = Integer.parseInt(onData.substring(8, 10));
         //分
         int minute = Integer.parseInt(onData.substring(10, 12));
+        if (type.equals("off")){
+            beginHour = hour;
+            beginMin = minute ;
+        }else if ( type .equals("on")){
+            endHour= hour;
+            endMin = minute ;
+        }
         return new int[]{year, month, day, hour, minute};
+    }
+
+    private void registTimer(ResultAdb.DataBean dataBean, boolean isRange){
+        //Power ; timeOn ; 2021-04-28 14:30 ;timeOff ; 2021-04-28 11:30
+        int[] timeOn = timeOnOff(dataBean.getTimeOn() , "on");
+        int[] timeOff = timeOnOff(dataBean.getTimeOff(),"off");
+        LogUtils.d(" 比较时间间隔 " + isRange);
+        PowerOnOffManager.getInstance(MainActivity.this).clearPowerOnOffTime();
+        if (isRange){
+            PowerOnOffManager.getInstance(MainActivity.this).setPowerOnOff(timeOn, timeOff);
+            LogUtils.d("<<---   设置定时关机时间  --->>");
+
+            dataList.remove(dataBean);
+            if (!dataList.isEmpty()){
+                mmkv.encode(Config.POWER_ON,dataList.get(0).getTimeOn());
+                mmkv.encode(Config.POWER_OFF,dataList.get(0).getTimeOff());
+            }
+            mHandler.removeCallbacks(TimerCheck);
+            isRunning = false;
+        }else{
+            isRunning = true;
+            mHandler.postDelayed(TimerCheck , 20000);
+        }
+        LogUtils.d("<<-- -开机--->>" + Arrays.toString(timeOn) + "<<---关机--->>" + Arrays.toString(timeOff));
+        String onTime = PowerOnOffManager.getInstance(MainActivity.this).getPowerOnTime();
+        boolean powerOnTime = PowerOnOffManager.getInstance(MainActivity.this).isSetPowerOnTime();
+        LogUtils.d("  定时开机时间 " + onTime + "  是否设置开关机: " + powerOnTime);
+    }
+
+    private void registTimer(String TimeOn , String TimeOff , boolean isRange){
+        //Power ; timeOn ; 2021-04-28 14:30 ;timeOff ; 2021-04-28 11:30
+        int[] timeOn = timeOnOff(TimeOn , "on");
+        int[] timeOff = timeOnOff(TimeOff,"off");
+
+//        boolean theCurrentTime = TimerSetting.atTheCurrentTime(beginHour, beginMin, endHour, endMin);
+        LogUtils.d(" 比较时间间隔 " + isRange);
+        PowerOnOffManager.getInstance(MainActivity.this).clearPowerOnOffTime();
+        if (isRange){
+            PowerOnOffManager.getInstance(MainActivity.this).setPowerOnOff(timeOn, timeOff);
+            LogUtils.d("<<---   设置定时关机时间  --->>");
+            mHandler.removeCallbacks(TimerCheck);
+            isRunning = false;
+        }else{
+            isRunning = true;
+            mHandler.postDelayed(TimerCheck , 20000);
+        }
+        LogUtils.d("<<-- registTimer -开机--->>" + Arrays.toString(timeOn) + "<<---关机--->>" + Arrays.toString(timeOff));
+        String onTime = PowerOnOffManager.getInstance(MainActivity.this).getPowerOnTime();
+        boolean powerOnTime = PowerOnOffManager.getInstance(MainActivity.this).isSetPowerOnTime();
+        LogUtils.d(" registTimer  定时开机时间 " + onTime + "  是否设置开关机: " + powerOnTime);
     }
 }

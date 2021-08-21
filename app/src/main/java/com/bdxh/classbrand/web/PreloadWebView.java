@@ -3,7 +3,6 @@ package com.bdxh.classbrand.web;
 import android.content.Context;
 import android.content.MutableContextWrapper;
 import android.os.Looper;
-import android.os.MessageQueue;
 import android.webkit.WebView;
 
 import com.bdxh.classbrand.app.App;

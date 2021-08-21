@@ -17,6 +17,8 @@ public class Config {
     public static final String Config_Title = "config_title";
     public static final String Config_Show_Icon = "showIcon";
     public static final String MAC = "mac";
+    public static final String POWER_ON = "poweron";
+    public static final String POWER_OFF = "poweroff";
 
     /**
      * SharedPreferences名字
@@ -60,8 +62,6 @@ public class Config {
     public static String SUBSCRIBE_TOPIC_STATE = "/class/brandstate";// 订阅主题  后台服务单独发给 根据mac地址进行
 
    //  客户端ID，一般以客户端唯一标识符表示，这里用 mac 表示 /class/brand/mac
-
-
 
     public static final int MQTT_PUSH_SUCCESS_MSG = 18;
     public static final int EVENT_SCREENSHOT = 22;//截图事件

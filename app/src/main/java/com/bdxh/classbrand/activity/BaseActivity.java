@@ -13,7 +13,6 @@ import com.bdxh.classbrand.service.MQTTService;
 
 public abstract class BaseActivity extends AppCompatActivity {
     private Context mContext;
-    private Handler handler;
     private MyServiceConnection serviceConnection;
 
     public MyServiceConnection getServiceConnection() {
@@ -29,7 +28,6 @@ public abstract class BaseActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(initLayout());
         mContext = this;
-
         initBind();
     }
 
