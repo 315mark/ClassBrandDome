@@ -108,6 +108,7 @@ public class MainActivity extends BaseActivity implements IGetMessageCallBack {
         mWebView = PreloadWebView.getInstance().getWebView(getContext());
         ll_content.addView(mWebView, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         WebSettings settings = mWebView.getSettings();
+        settings.setDomStorageEnabled(true);
         settings.setJavaScriptEnabled(true);
         mWebView.setWebViewClient(new WebViewClient() {
             @Override

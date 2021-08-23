@@ -138,7 +138,7 @@ public class MQTTService extends Service {
 
         // 服务器地址（协议+地址+端口号）
         String uri = host;
-        mqttAndroidClient = new MqttAndroidClient(this, uri, clientId);
+        mqttAndroidClient = new MqttAndroidClient(getApplicationContext(), uri, clientId);
         // 设置MQTT监听并且接受消息
         mqttAndroidClient.setCallback(mqttCallback);
         mMqttConnectOptions = new MqttConnectOptions();
@@ -161,7 +161,7 @@ public class MQTTService extends Service {
         // last will message
         boolean doConnect = true;
         String message = "{\"terminal_uid\":\"" + clientId + "\"}";
-        Log.e(getClass().getName(), "message是:" + message);
+        LogUtils.d( " message : " + message);
         String topic = myTopic;
         Integer qos = 0;
         Boolean retained = false;
@@ -173,7 +173,7 @@ public class MQTTService extends Service {
             try {
                 mMqttConnectOptions.setWill(topic, message.getBytes(), qos.intValue(), retained.booleanValue());
             } catch (Exception e) {
-                Log.i(TAG, "Exception Occured", e);
+                LogUtils.i(" Exception Occured : ", e);
                 doConnect = false;
                 iMqttActionListener.onFailure(null, e);
             }
@@ -197,8 +197,8 @@ public class MQTTService extends Service {
             LogUtils.d("释放资源");
             mqttAndroidClient.disconnect(); //断开连接
             if (mqttAndroidClient != null) {
-                mqttAndroidClient.unregisterResources();
                 mqttAndroidClient.close();
+                mqttAndroidClient.unregisterResources();
             }
         } catch (MqttException e) {
             e.printStackTrace();
@@ -209,7 +209,7 @@ public class MQTTService extends Service {
      * 连接MQTT服务器
      */
     private void doClientConnection() {
-        if (!isAlreadyConnected() && isConnectIsNormal()) {
+        if (!isAlreadyConnected() && isConnectIsNormal()){
             try {
                 mqttAndroidClient.connect(mMqttConnectOptions, null, iMqttActionListener);
             } catch (MqttException e) {
@@ -238,11 +238,11 @@ public class MQTTService extends Service {
             LogUtils.i("连接成功 ");
             try {
                 // 订阅myTopic话题
-                LogUtils.i("SUB:" + myTopic);
+                LogUtils.i(" IMqttActionListener :" + myTopic);
                 mqttAndroidClient.subscribe(myTopic, 0);
             } catch (MqttException e) {
                 e.printStackTrace();
-                LogUtils.e("SUB:" + e.getMessage());
+                LogUtils.e(" IMqttActionListener :" + e.getMessage());
             }
         }
 
@@ -259,11 +259,11 @@ public class MQTTService extends Service {
             try {
                 LogUtils.i("连接成功 ------------mqttCallback");
                 // 订阅myTopic话题
-                LogUtils.i("SUB:" + myTopic);
+                LogUtils.i(" connectComplete :" + myTopic);
                 mqttAndroidClient.subscribe(myTopic, 0);
             } catch (MqttException e) {
                 e.printStackTrace();
-                LogUtils.e("SUB:" + e.getMessage());
+                LogUtils.e(" connectComplete :" + e.getMessage());
             }
         }
 
@@ -277,7 +277,7 @@ public class MQTTService extends Service {
             LogUtils.i(MessageFormat.format("收到消息： {0}", str1));
             ResultAdb bean = GsonUtil.GsonToBean(new String(message.getPayload()), ResultAdb.class);
             String operation = bean.data.getOperation();
-            if ("Update".equals(operation) || "Refresh".equals(operation)) {
+            if ("Update".equals(operation) || "Refresh".equals(operation)){
                 ThreadUtils.getCpuPool().execute(() -> getVsersion());
             }
 
@@ -413,10 +413,10 @@ public class MQTTService extends Service {
         DownloadCenter.getInstance().getVsersionCode(RequestBody.create(JSON, toJson));
         DownloadCenter.getInstance().resultInfo(new DownloadCenter.HttpPostListener() {
             @Override
-            public void success(String data) {
+            public void success(String data){
                 MsgInfo bean = GsonUtil.GsonToBean(data, MsgInfo.class);
                 LogUtils.d("数据 " + bean.toString());
-                if (!"1".equals(bean.result)) {
+                if (!"1".equals(bean.result)){
                     return;
                 }
 
@@ -428,7 +428,7 @@ public class MQTTService extends Service {
                 LogUtils.d(" 获取版本号： " + versionCode);
                 int i = AppRunningUtil.compareVersion(versionCode, appVersionCode);
                 String url = versionInfo.getPackageUrl();
-                LogUtils.d("比较两个版本号大小 " + i + appVersionCode);
+                LogUtils.d("比较两个版本号大小 " + i+ " <-----> " + appVersionCode);
                 if (i == 1 && !url.isEmpty()) {
                     //判断版本号是否大于当前版本
                     downLoadApk(url);
@@ -491,5 +491,4 @@ public class MQTTService extends Service {
             super.onDeleted(url);
         }
     };
-
 }
