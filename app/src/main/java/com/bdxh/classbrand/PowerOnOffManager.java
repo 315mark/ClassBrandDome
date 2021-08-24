@@ -33,7 +33,6 @@ public class PowerOnOffManager {
         if (powerOnOffManager == null) {
             powerOnOffManager = new PowerOnOffManager(context);
         }
-
         return powerOnOffManager;
     }
 

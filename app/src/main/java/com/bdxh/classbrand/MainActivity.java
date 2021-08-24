@@ -199,12 +199,12 @@ public class MainActivity extends BaseActivity implements IGetMessageCallBack {
             public Bitmap getDefaultVideoPoster() {
                 try{
                     //这个地方是加载h5的视频列表 默认图   点击前的视频图
-                    LogUtils.w("全网搜索","   加载视频默认图片");
+                    LogUtils.w(" 加载视频默认图片");
                     return BitmapFactory.decodeResource(getApplicationContext().getResources(),
                             R.mipmap.vidoe_icon);
 
                 }catch(Exception e){
-                    LogUtils.w("全网搜索","   加载视频默认图片失败,,,,,,,,,,,,,");
+                    LogUtils.w(" 加载视频默认图片失败,,,,,,,,,,,,,");
                     return super.getDefaultVideoPoster();
                 }
             }
