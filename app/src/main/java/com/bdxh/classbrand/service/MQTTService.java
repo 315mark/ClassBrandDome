@@ -68,7 +68,7 @@ public class MQTTService extends Service {
     private static MqttAndroidClient mqttAndroidClient;
     private MqttConnectOptions mMqttConnectOptions;
     private ResultAdb bean = new ResultAdb();
-    private Handler mHandler = new Handler(Looper.getMainLooper()); // 全局变量
+
     private DeviceVersionInfo versionInfo;
 
     private String host = Config.HOST;
@@ -78,7 +78,6 @@ public class MQTTService extends Service {
     private static String sendTopic = Config.SUBSCRIBE_TOPIC_STATE;//要发布控制主题
     private String clientId = UUID.randomUUID().toString().replace("-", "");//客户端标识
     private IGetMessageCallBack mGetMessageCallBack;
-    static IGetMessageCallBack mcallBack;
 
 
     @Override
@@ -115,7 +114,6 @@ public class MQTTService extends Service {
 
 
     public static void publish(String msg, IGetMessageCallBack callBack) {
-        mcallBack = callBack;
         String topic = sendTopic;
         Integer qos = 0;
         Boolean retained = false;
@@ -188,7 +186,6 @@ public class MQTTService extends Service {
         // 此处解决MQTT退出异常问题
         destroy();
         //关闭定时任务
-        mHandler.removeCallbacksAndMessages(null);
         super.onDestroy();
     }
 
@@ -286,12 +283,8 @@ public class MQTTService extends Service {
             }
 
             if (mGetMessageCallBack != null) {
-                mGetMessageCallBack.setCommand(bean.data);
-            }
-
-            if (mcallBack != null) {
                 LogUtils.i(bean.data);
-                mcallBack.setCommand(bean.data);
+                mGetMessageCallBack.setCommand(bean.data);
             }
         }
 
@@ -467,12 +460,10 @@ public class MQTTService extends Service {
         public void onSuccess(final String url) {
             super.onSuccess(url);
             LogUtils.i(" 下载成功 ");
-            if (mcallBack != null) {
+            if (mGetMessageCallBack != null) {
                 ResultAdb.DataBean bean = new ResultAdb.DataBean();
                 bean.setOperation("InstallApk");
-                mcallBack.setCommand(bean);
-                //关闭定时任务
-                mHandler.removeCallbacksAndMessages(null);
+                mGetMessageCallBack.setCommand(bean);
             }
         }
 

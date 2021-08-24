@@ -4,7 +4,9 @@ import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.AssetManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.net.Uri;
 import android.os.Build;
@@ -89,6 +91,11 @@ public class MainActivity extends BaseActivity implements IGetMessageCallBack {
     }
 
     @Override
+    public AssetManager getAssets() {
+        return getResources().getAssets();
+    }
+
+    @Override
     public void initBind() {
         ActivityCompat.requestPermissions(this, Config.NEEDED_PERMISSIONS, REQ_CODE);
         MMKV.initialize(this);
@@ -108,7 +115,11 @@ public class MainActivity extends BaseActivity implements IGetMessageCallBack {
         mWebView = PreloadWebView.getInstance().getWebView(getContext());
         ll_content.addView(mWebView, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         WebSettings settings = mWebView.getSettings();
-        settings.setDomStorageEnabled(true);
+        settings.setSupportZoom(false); //可以压缩
+        settings.setBuiltInZoomControls(true);
+        settings.setJavaScriptCanOpenWindowsAutomatically(true);
+        settings.setDisplayZoomControls(false);
+        settings.setDefaultTextEncodingName("UTF-8");
         settings.setJavaScriptEnabled(true);
         mWebView.setWebViewClient(new WebViewClient() {
             @Override
@@ -181,6 +192,21 @@ public class MainActivity extends BaseActivity implements IGetMessageCallBack {
             public boolean onConsoleMessage(ConsoleMessage consoleMessage) {
 //                LogUtils.d("onConsoleMessage:" + consoleMessage.message());
                 return super.onConsoleMessage(consoleMessage);
+            }
+
+            @Nullable
+            @Override
+            public Bitmap getDefaultVideoPoster() {
+                try{
+                    //这个地方是加载h5的视频列表 默认图   点击前的视频图
+                    LogUtils.w("全网搜索","   加载视频默认图片");
+                    return BitmapFactory.decodeResource(getApplicationContext().getResources(),
+                            R.mipmap.vidoe_icon);
+
+                }catch(Exception e){
+                    LogUtils.w("全网搜索","   加载视频默认图片失败,,,,,,,,,,,,,");
+                    return super.getDefaultVideoPoster();
+                }
             }
         });
 
